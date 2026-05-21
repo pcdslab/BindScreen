@@ -21,6 +21,8 @@ from utils.loss import *
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 os.makedirs('../models', exist_ok=True)
 
 
@@ -49,8 +51,7 @@ def evaluate(model,
              loader, 
              device, 
              evaluation_dataset, 
-             mol_mapper=None,
-             df=None, 
+             df, 
              eval_batch_size=4):
 
   model.eval()
@@ -99,27 +100,25 @@ def evaluate(model,
   sim = z_prot @ z_mol.T
 
   if evaluation_dataset == 'lit_pcba':
+    prot_to_row = {p: i for i, p in enumerate(unique_prots)}
+    mol_to_col = {str(m): j for j, m in enumerate(unique_mols)}
     grouped = df.groupby("prot_id")
     metrics_sum = defaultdict(float)
+    count = 0
 
-    for i, prot in enumerate(prot_mapper['id']):
-      test_df = grouped.get_group(prot)
-      mol_ids = test_df.mol_id.values
-      labels = test_df.active.values
+    for prot in unique_prots:
+      test_df_prot = grouped.get_group(prot)
+      mol_ids = test_df_prot.mol_id.values
+      labels  = test_df_prot.active.values.astype(float)
 
-      indices = []
-      y = []
-      for mol_id, label in zip(mol_ids, labels):
-        indices.append(mol_mapper[str(mol_id)])
-        y.append(label)
+      row = prot_to_row[prot]
+      col_indices = [mol_to_col[str(mid)] for mid in mol_ids]
 
-      scores = sim[i][indices].cpu().numpy()
-      y = np.array(y)
+      scores = sim[row][col_indices].cpu().numpy()
+      n_actives = labels.sum()
 
       order = np.argsort(-scores)
-      ranked_labels = y[order]
-
-      n_actives = y.sum()
+      ranked_labels = labels[order]
 
       for frac in [0.005, 0.01, 0.05]:
         k = max(1, int(frac * len(labels)))
@@ -127,11 +126,11 @@ def evaluate(model,
         ef = (hits / k) / (n_actives / len(labels))
         metrics_sum[f"EF{frac*100}%"] += ef
 
-      metrics_sum["AUROC"] += roc_auc_score(labels, scores)    
+      metrics_sum["AUROC"]  += roc_auc_score(labels, scores)
       metrics_sum["BEDROC85"] += bedroc(scores, labels, 85)
+      count += 1
 
-    metrics = {k: v / len(prot_mapper['id']) for k,v in metrics_sum.items()}
-  
+    metrics = {k: v / count for k, v in metrics_sum.items()}
 
   else:
     metrics_sum = defaultdict(float)
@@ -172,12 +171,12 @@ def evaluate(model,
 
   return metrics
 
-def make_dataset(df, commom, extra):
+def make_dataset(df, common, extra):
   return MultiModalDataset(
-    proteins_names=df.uniprot_id.values,
-    molecules_names=df.molecule_chembl_id.values,
-    proteins_sequences=df.sequence.values,
-    **common, 
+    proteins_names=df.prot_id.values,
+    molecules_names=df.mol_id.values,
+    proteins_sequences=df.prot.values,
+    **common,
     **extra)
 
 @click.command()
@@ -185,8 +184,6 @@ def make_dataset(df, commom, extra):
 @click.option("--dataset", type=click.Choice(["chembl", "lit_pcba"]), required=True)
 def main(mode, dataset):
   set_seed(42)
-  device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-  os.makedirs(models_dir, exist_ok=True)
 
   dataset_dict = load_dataset('SaeedLab/SeqScreen', data_dir=dataset)
 
@@ -197,19 +194,21 @@ def main(mode, dataset):
   with open('../embs/molecules_mapping.json') as f:
     molecule_mapping = json.load(f)
 
+  with open('../embs/proteins_mapping.json') as f:
+    protein_mapping = json.load(f)
+
   common = dict(
     molecules_mapper=molecule_mapping,
     protein_mode=mode,
+    proteins_mapper=protein_mapping
   )
 
   if mode == "embedding":
-    with open('../embs/proteins_mapping.json') as f:
-      protein_mapping = json.load(f)
-    extra = dict(proteins_mapper=protein_mapping)
+    extra = dict()
 
-  else:    
-    tokenizer = AutoTokenizer.from_pretrained(esm_model)
-    encoder_model = AutoModel.from_pretrained(esm_model, torch_dtype=torch.bfloat16)
+  else:
+    tokenizer = AutoTokenizer.from_pretrained('facebook/esm2_t36_3B_UR50D')
+    encoder_model = AutoModel.from_pretrained('facebook/esm2_t36_3B_UR50D', torch_dtype=torch.bfloat16)
 
     lora_cfg = LoraConfig(
       r=16, lora_alpha=32,
@@ -225,9 +224,9 @@ def main(mode, dataset):
     encoder_model = encoder_model.to(device)
     extra = dict(proteins_tokenization=tokenizer)
 
-  train_dataset = make_dataset(train_df, commom, extra)
-  val_dataset = make_dataset(val_df, commom, extra)
-  test_dataset = make_dataset(test_df, commom, extra)
+  train_dataset = make_dataset(train_df, common, extra)
+  val_dataset = make_dataset(val_df, common, extra)
+  test_dataset = make_dataset(test_df, common, extra)
 
   train_loader = ProteinBatchLoader(ChunkBatchSampler(train_dataset))
   val_loader = ProteinBatchLoader(ChunkBatchSampler(val_dataset))
@@ -265,19 +264,12 @@ def main(mode, dataset):
   trainer.train(num_epochs=30)
 
   model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-  model, 
-             loader, 
-             device, 
-             evaluation_dataset, 
-             mol_mapper=None, 
-             prot_mapper=None, 
-             df=None, 
+
   metrics = evaluate(model=model, 
                      loader=test_loader, 
                      device=device, 
                      evaluation_dataset=dataset,
-                     mol_mapper=molecule_mapping,
-                     prot_mapper=protein_mapping)
+                     df=test_df)
 
   click.echo("\n--- Metrics ---")
   for name, value in metrics.items():
