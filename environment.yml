@@ -1,0 +1,19 @@
+name: seqscreen
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - torch==2.7.1 --extra-index-url https://download.pytorch.org/whl/cu118
+    - transformers==4.56.2
+    - datasets
+    - peft
+    - numpy
+    - pandas
+    - scikit-learn
+    - tqdm
+    - click

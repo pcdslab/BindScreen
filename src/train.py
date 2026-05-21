@@ -91,7 +91,7 @@ def evaluate(model,
         }
 
       else:
-        indices  = [dataset.proteins_mapper[p] for p in batch]
+        indices  = [dataset.protein_to_idx[p] for p in batch]
         prot_input = torch.tensor(dataset.X_prot[indices], device=device)
       
       prot_embs.append(model.encode_protein(prot_input))
