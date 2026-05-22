@@ -2,7 +2,7 @@
 
 SeqScreen: Protein-Centric Contrastive Learning for Sequence-Based Virtual Screening
 
-\[[Cite](#citation)\]
+| \[[Dataset on HuggingFace](https://huggingface.co/datasets/SaeedLab/SeqScreen)\] | \[[Model Collection](https://huggingface.co/collections/SaeedLab/seqscreen)\] | \[[Cite](#citation)\]
 
 ## Abstract
 Virtual screening aims to identify candidate molecules that bind to a target protein, playing a central role in computational drug discovery. Sequence-based deep learning methods offer an applicable alternative to structure-based approaches, but typically process one protein-molecule pair at a time, limiting their scalability to large molecular libraries. Contrastive learning methods inspired by CLIP have shown promise for learning joint protein-molecule representations, but standard CLIP training was designed for symmetric tasks and does not account for the asymmetric and one-to-many nature of protein-molecule binding. In this paper, we introduce *SeqScreen*, a sequence-based virtual screening method built on a dual-encoder contrastive architecture. SeqScreen introduces a protein-centric batch construction strategy and an asymmetric multi-positive InfoNCE loss to cope with the protein-centric nature of virtual screening. We conduct a systematic evaluation across 8 protein language models and 3 molecular language model variants. The protein-centric batch construction consistently outperforms standard CLIP training across all evaluated encoders, while requiring approximately 32 times fewer training epochs and 7 times fewer forward passes during inference compared to pair-based methods. On the LIT-PCBA dataset, SeqScreen outperforms all sequence-based baselines, achieving a relative improvement of up to 39% in EF at 0.5 over the best competing method, while remaining competitive with traditional docking approaches without requiring 3D structural information.
@@ -33,6 +33,23 @@ conda activate seqscreen
 ```
 
 ## Running the Experiments
+
+1. Extract proteins and molecules embeddings:
+```bash
+cd src
+python extract.py --modality protein
+```
+Arguments:
+**--modality**: Modality (protein or molecule)
+
+2. Train and evaluate:
+```bash
+cd src
+python train.py --mode embedding --dataset chembl
+```
+Arguments:
+**--mode**: Embedding mode (referred to as frozen in the paper - use **--mode embedding**) or Tokenized mode (referred to as finetuning in the paper - use **--mode tokenized**)
+**--dataset**: Dataset for training and evaluation on the test set (chembl or lit_pcba)
 
 ---
 

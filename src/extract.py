@@ -12,8 +12,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 os.makedirs('../embs', exist_ok=True)
 
 @click.command()
-@click.option("--mode", type=click.Choice(["protein", "molecule"]), required=True)
-def main(mode):
+@click.option("--modality", type=click.Choice(["protein", "molecule"]), required=True)
+def main(modality):
 
   dataset_chembl = load_dataset('SaeedLab/SeqScreen', data_dir='chembl')
   dataset_lit = load_dataset('SaeedLab/SeqScreen', data_dir='lit_pcba')
@@ -25,7 +25,7 @@ def main(mode):
                          dataset_lit['validation'].to_pandas(),
                          dataset_lit['test'].to_pandas()])
 
-  if mode == 'protein':
+  if modality == 'protein':
     MAX_LEN = 1022
     EMB_DIM = 2560
     mapper_path = '../embs/proteins_mapping.json'
