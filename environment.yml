@@ -1,4 +1,4 @@
-name: seqscreen
+name: bindscreen
 channels:
   - pytorch
   - nvidia

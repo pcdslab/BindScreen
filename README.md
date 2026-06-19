@@ -1,11 +1,11 @@
-# SeqScreen
+# BindScreen
 
-SeqScreen: Protein-Centric Contrastive Learning for Sequence-Based Virtual Screening
+BindScreen: Protein-Centric Contrastive Learning for Sequence-Based Virtual Screening
 
-\[[Dataset on HuggingFace](https://huggingface.co/datasets/SaeedLab/SeqScreen)\] | \[[Model Collection](https://huggingface.co/collections/SaeedLab/seqscreen)\] | \[[Cite](#citation)\]
+\[[Dataset on HuggingFace](https://huggingface.co/datasets/SaeedLab/BindScreen)\] | \[[Model Collection](https://huggingface.co/collections/SaeedLab/bindscreen)\] | \[[Cite](#citation)\]
 
 ## Abstract
-Virtual screening aims to identify candidate molecules that bind to a target protein, playing a central role in computational drug discovery. Sequence-based deep learning methods offer an applicable alternative to structure-based approaches, but typically process one protein-molecule pair at a time, limiting their scalability to large molecular libraries. Contrastive learning methods inspired by CLIP have shown promise for learning joint protein-molecule representations, but standard CLIP training was designed for symmetric tasks and does not account for the asymmetric and one-to-many nature of protein-molecule binding. In this paper, we introduce *SeqScreen*, a sequence-based virtual screening method built on a dual-encoder contrastive architecture. SeqScreen introduces a protein-centric batch construction strategy and an asymmetric multi-positive InfoNCE loss to cope with the protein-centric nature of virtual screening. We conduct a systematic evaluation across 8 protein language models and 3 molecular language model variants. The protein-centric batch construction consistently outperforms standard CLIP training across all evaluated encoders, while requiring approximately 32 times fewer training epochs and 7 times fewer forward passes during inference compared to pair-based methods. On the LIT-PCBA dataset, SeqScreen outperforms all sequence-based baselines, achieving a relative improvement of up to 39% in EF at 0.5 over the best competing method, while remaining competitive with traditional docking approaches without requiring 3D structural information.
+Virtual screening aims to identify candidate molecules that bind to a target protein, playing a central role in computational drug discovery. Sequence-based deep learning methods offer a more broadly applicable alternative to structure-based approaches, since they do not require 3D structural information. However, they typically require a separate forward pass per protein-molecule pair, limiting their scalability to large molecular libraries. Contrastive learning methods inspired by CLIP address this by encoding proteins and molecules independently, allowing similarity analysis via simple comparisons rather than a forward pass per pair. However, standard CLIP training was designed for symmetric tasks and does not account for the asymmetric and one-to-many nature of protein-molecule binding. In this paper, we introduce *BindScreen*, a sequence-based virtual screening method built on a dual-encoder contrastive architecture. BindScreen introduces a protein-centric batch construction strategy and an asymmetric multi-positive InfoNCE loss to cope with the protein-centric nature of virtual screening. We conducted a systematic evaluation of 8 protein language models and 3 molecular language model variants against BindScreen. The proposed protein-centric batch construction consistently outperforms standard CLIP training across all evaluated encoders while substantially improving computational efficiency, reducing training cost by up to 32 times. In addition, our experiments demonstrate that BindScreen requires 7 times fewer inference computations than pairwise virtual screening approaches. On the LIT-PCBA dataset, BindScreen outperforms all sequence-based baselines, achieving a relative improvement of up to 39% in EF at 0.5 over the best competing method, while remaining competitive with traditional docking approaches without requiring 3D structural information.
 
 ## System Requirements
 - A computer with Ubuntu 16.04 (or later) or CentOS 8.1 (or later).
@@ -29,7 +29,7 @@ conda env create --file environment.yml
 
 ### Activate the Environment
 ```bash
-conda activate seqscreen
+conda activate bindscreen
 ```
 
 ## Running the Experiments
