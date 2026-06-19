@@ -15,8 +15,8 @@ os.makedirs('../embs', exist_ok=True)
 @click.option("--modality", type=click.Choice(["protein", "molecule"]), required=True)
 def main(modality):
 
-  dataset_chembl = load_dataset('SaeedLab/SeqScreen', data_dir='chembl')
-  dataset_lit = load_dataset('SaeedLab/SeqScreen', data_dir='lit_pcba')
+  dataset_chembl = load_dataset('SaeedLab/BindScreen', data_dir='chembl')
+  dataset_lit = load_dataset('SaeedLab/BindScreen', data_dir='lit_pcba')
 
   full_data = pd.concat([dataset_chembl['train'].to_pandas(),
                          dataset_chembl['validation'].to_pandas(),

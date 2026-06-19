@@ -185,7 +185,7 @@ def make_dataset(df, common, extra):
 def main(mode, dataset):
   set_seed(42)
 
-  dataset_dict = load_dataset('SaeedLab/SeqScreen', data_dir=dataset)
+  dataset_dict = load_dataset('SaeedLab/BindScreen', data_dir=dataset)
 
   train_df = dataset_dict['train'].to_pandas()
   val_df = dataset_dict['validation'].to_pandas()
