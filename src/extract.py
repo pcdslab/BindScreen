@@ -17,13 +17,17 @@ def main(modality):
 
   dataset_chembl = load_dataset('SaeedLab/BindScreen', data_dir='chembl')
   dataset_lit = load_dataset('SaeedLab/BindScreen', data_dir='lit_pcba')
+  dataset_dude = load_dataset('SaeedLab/BindScreen', data_dir='dude')
 
   full_data = pd.concat([dataset_chembl['train'].to_pandas(),
                          dataset_chembl['validation'].to_pandas(),
                          dataset_chembl['test'].to_pandas(),
                          dataset_lit['train'].to_pandas(),
                          dataset_lit['validation'].to_pandas(),
-                         dataset_lit['test'].to_pandas()])
+                         dataset_lit['test'].to_pandas(),
+                         dataset_dude['train'].to_pandas(),
+                         dataset_dude['validation'].to_pandas(),
+                         dataset_dude['test'].to_pandas()])
 
   if modality == 'protein':
     MAX_LEN = 1022
