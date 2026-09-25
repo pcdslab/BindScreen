@@ -99,7 +99,7 @@ def evaluate(model,
   z_prot = torch.cat(prot_embs)
   sim = z_prot @ z_mol.T
 
-  if evaluation_dataset == 'lit_pcba':
+  if evaluation_dataset == 'lit_pcba' or evaluation_dataset == 'dude':
     prot_to_row = {p: i for i, p in enumerate(unique_prots)}
     mol_to_col = {str(m): j for j, m in enumerate(unique_mols)}
     grouped = df.groupby("prot_id")
@@ -181,7 +181,7 @@ def make_dataset(df, common, extra):
 
 @click.command()
 @click.option("--mode", type=click.Choice(["embedding", "tokenized"]), required=True)
-@click.option("--dataset", type=click.Choice(["chembl", "lit_pcba"]), required=True)
+@click.option("--dataset", type=click.Choice(["chembl", "lit_pcba", "dude"]), required=True)
 def main(mode, dataset):
   set_seed(42)
 
