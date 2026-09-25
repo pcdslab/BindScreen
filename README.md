@@ -51,7 +51,7 @@ python train.py --mode embedding --dataset chembl
 
 Arguments:
 - **--mode**: Embedding mode (referred to as frozen in the paper - use **--mode embedding**) or Tokenized mode (referred to as finetuning in the paper - use **--mode tokenized**)
-- **--dataset**: Dataset for training and evaluation on the test set (chembl or lit_pcba)
+- **--dataset**: Dataset for training and evaluation on the test set (chembl, lit_pcba, or dude)
 
 ---
 
